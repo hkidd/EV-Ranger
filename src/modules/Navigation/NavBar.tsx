@@ -43,12 +43,10 @@ export default function NavBar({ setRun, hideTourButton }: NavBarProps) {
             </button>
           )}
         </NavbarBrand>
-
-        <div className='flex md:hidden'>
+        <div className='flex md:hidden h-6'>
           <NavbarMenuToggle aria-label='toggle menu' />
         </div>
       </div>
-
       {/* Desktop nav items */}
       <NavbarContent className='hidden md:flex gap-4 w-full md:justify-center mt-4'>
         <NavbarItem isActive={window.location.pathname === '/about'}>
