@@ -14,6 +14,13 @@ import { OpenStreetMapProvider, GeoSearchControl } from 'leaflet-geosearch'
 import L from 'leaflet'
 import type { LeafletEvent } from 'leaflet'
 import { SelectedCar } from '../../types'
+import markerIcon from 'leaflet/dist/images/marker-icon.png'
+
+L.Marker.prototype.setIcon(
+  L.icon({
+    iconUrl: markerIcon
+  })
+)
 
 interface GeoSearchResultLocation {
   x: number
