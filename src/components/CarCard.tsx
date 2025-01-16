@@ -1,10 +1,18 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Card, CardHeader, CardBody, Slider, Divider } from '@nextui-org/react'
+import {
+  Button,
+  Card,
+  CardHeader,
+  CardBody,
+  Slider,
+  Divider
+} from '@nextui-org/react'
 import WheelDropdown from './dropdowns/WheelDropdown'
 import BatteryDropdown from './dropdowns/BatteryDropdown'
 import { HexColorPicker } from 'react-colorful'
 import { CarCardProps } from '../types'
 import { PiThermometerBold } from 'react-icons/pi'
+import { FiX } from 'react-icons/fi'
 
 const CarCard: React.FC<CarCardProps> = ({
   car,
@@ -54,23 +62,19 @@ const CarCard: React.FC<CarCardProps> = ({
   }
 
   const handleCardClick = () => {
-    if (isSelected && selectedCar && onDeselect) {
-      onDeselect(variant.id, variant.name, variant.generation)
-    } else {
-      const defaultBattery =
-        (variant.battery_size?.length ?? 0) > 0
-          ? (variant.battery_size ?? [])[0]
-          : ''
-      const defaultWheel =
-        variant.wheels && variant.wheels.length > 0 ? variant.wheels[0] : ''
-      onSelectionChange(
-        variant.id,
-        variant.name,
-        variant.generation,
-        defaultBattery,
-        defaultWheel
-      )
-    }
+    const defaultBattery =
+      (variant.battery_size?.length ?? 0) > 0
+        ? (variant.battery_size ?? [])[0]
+        : ''
+    const defaultWheel =
+      variant.wheels && variant.wheels.length > 0 ? variant.wheels[0] : ''
+    onSelectionChange(
+      variant.id,
+      variant.name,
+      variant.generation,
+      defaultBattery,
+      defaultWheel
+    )
   }
 
   const handleSliderChange = (value: number) => {
@@ -112,9 +116,12 @@ const CarCard: React.FC<CarCardProps> = ({
   }
 
   return (
-    <div onClick={handleCardClick} className='cursor-pointer'>
+    <div
+      onClick={handleCardClick}
+      className={`${isSelected ? '' : 'cursor-pointer'}`}
+    >
       <Card
-        isHoverable
+        isHoverable={isSelected ? false : true}
         className={`shadow-md transition-shadow ${
           isSelected ? 'border-2' : 'border'
         } ${isSelected ? 'border-blue-500' : 'border-gray-300'}`}
@@ -122,14 +129,31 @@ const CarCard: React.FC<CarCardProps> = ({
           borderColor: isSelected ? selectedCar?.color || 'blue' : 'lightgrey'
         }}
       >
-        <CardHeader className='flex-col items-start py-2'>
-          <h2 className='text-md font-bold'>
+        <CardHeader className='relative flex-col items-start py-2'>
+          {isSelected ? (
+            <div className='w-full flex justify-end'>
+              <Button
+                onPress={() =>
+                  onDeselect &&
+                  isSelected &&
+                  selectedCar &&
+                  onDeselect(variant.id, variant.name, variant.generation)
+                }
+                className=' text-white hover:text-secondary flex bg-primary h-5 w-5 p-0 m-0 -mb-6'
+                size='sm'
+                isIconOnly
+              >
+                <FiX size={15} />
+              </Button>
+            </div>
+          ) : null}
+          <h2 className='text-md font-bold w-5/6'>
             {car.brand} {car.model} - {variant.name}{' '}
             {variant.generation !== undefined
               ? `(Gen ${variant.generation})`
               : ''}
           </h2>
-          <p className='text-gray-600 text-xs'>
+          <p className='text-gray-600 text-xs w-5/6'>
             Approx. starting price: $
             {variant.price ? variant.price.toLocaleString() : 'N/A'} USD
           </p>

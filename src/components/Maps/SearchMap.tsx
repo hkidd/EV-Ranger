@@ -129,7 +129,7 @@ const SearchMap: React.FC<SearchMapProps> = ({
   }, [])
 
   return (
-    <div className='h-full w-full p-6 md:pr-6 md:pl-0'>
+    <div className='h-full w-full p-4 md:py-6 md:pr-6 md:pl-0'>
       <MapContainer
         center={userPosition}
         zoom={4}

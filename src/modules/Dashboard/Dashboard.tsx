@@ -17,8 +17,13 @@ const Dashboard: React.FC = () => {
   const [selectedCars, setSelectedCars] = useState<SelectedCar[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [externalTempAdjustment, setExternalTempAdjustment] = useState(false)
+  const [isMapVisible, setIsMapVisible] = useState(true)
 
   const { data: cars = [], isLoading, isError } = useCarsQuery()
+
+  const handleToggleMap = () => {
+    setIsMapVisible(!isMapVisible)
+  }
 
   const filteredCars = useMemo(() => {
     return searchQuery
@@ -145,7 +150,7 @@ const Dashboard: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className='flex flex-col md:flex-row h-[calc(100vh-5rem)] relative'>
+      <div className='flex flex-col md:flex-row h-screen-minus-header relative'>
         {/* Map section Skeleton */}
         <div className='order-1 md:order-2 w-full md:w-2/3 h-1/2 md:h-full relative z-0'>
           <Skeleton className='w-full h-full rounded-lg' />
@@ -164,17 +169,25 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className='flex flex-col md:flex-row h-[calc(100vh-4rem)] relative'>
-      <div className='order-1 md:order-2 w-full md:w-2/3 h-1/2 md:h-full relative z-0'>
+    <div className='flex flex-col md:flex-row h-screen-minus-header relative'>
+      <div
+        className={`order-1 md:order-2 w-full md:w-2/3 ${isMapVisible ? 'h-1/2' : 'h-0'} ${isMapVisible ? 'block' : 'hidden'} md:h-full relative z-0`}
+      >
         <SearchMap
           selectedCars={selectedCars}
           externalTempAdjustment={externalTempAdjustment}
           tempModifier={tempModifier}
         />
       </div>
-      <div className='order-2 md:order-1 w-full md:w-1/3 flex flex-col bg-white z-10 h-1/2 md:h-full overflow-auto'>
+      <div
+        className={`order-2 md:order-1 w-full md:w-1/3 flex flex-col bg-white z-10 ${isMapVisible ? 'h-1/2' : 'h-full'} md:h-full overflow-auto md:py-6 md:px-0`}
+      >
         <div>
-          <SearchInput onFilter={handleFilter} />
+          <SearchInput
+            onFilter={handleFilter}
+            handleToggleMap={handleToggleMap}
+            isMapVisible={isMapVisible}
+          />
         </div>
         {isError ? (
           <div className='text-red-500 text-center mt-4 p-6'>
@@ -182,13 +195,13 @@ const Dashboard: React.FC = () => {
           </div>
         ) : (
           <>
-            <div className='flex flex-col p-6 pt-0'>
+            <div className='flex flex-col px-6 py-4 md:p-6 pt-0'>
               <ExtTempCheckbox
                 setExternalTempAdjustment={setExternalTempAdjustment}
               />
               {externalTempAdjustment ? <ExternalTempModifier /> : null}
             </div>
-            <div className='flex-1 overflow-auto p-6 pt-0'>
+            <div className='flex-grow overflow-auto p-6 pt-0'>
               <CarList
                 cars={filteredCars}
                 selectedCars={selectedCars}

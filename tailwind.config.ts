@@ -13,6 +13,9 @@ export default {
       colors: {
         primary: '#4ECCA3',
         secondary: '#393E46'
+      },
+      height: {
+        'screen-minus-header': 'calc(100vh - 6rem)'
       }
     }
   },

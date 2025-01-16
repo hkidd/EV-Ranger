@@ -8,6 +8,7 @@ import { NextUIProvider } from '@nextui-org/react'
 import {useState} from 'react'
 import AppTour from './AppTour'
 import { TempProvider } from './context/TempContext'
+import Footer from './components/Footer'
 
 // Declare the router config module
 declare module '@react-types/shared' {
@@ -36,6 +37,7 @@ function App() {
             <Route path='/explore' element={<Dashboard />} />
           </Routes>
         </TempProvider>
+        <Footer />
       </NextUIProvider>
     </QueryClientProvider>
   )

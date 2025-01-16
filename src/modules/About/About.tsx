@@ -19,13 +19,13 @@ const About: React.FC = () => {
   const imageAlt = 'EV Ranger Tree Logo'
 
   return (
-    <section className='relative bg-white overflow-hidden'>
-      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-6 text-center'>
+    <section className='relative bg-white overflow-hidden h-screen-minus-header'>
+      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-6 text-center'>
         <h1 className='text-3xl sm:text-4xl md:text-5xl font-extrabold text-primary'>
           {title}
         </h1>
       </div>
-      <div className='relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16'>
+      <div className='relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6'>
         <div className='grid grid-cols-1 lg:grid-cols-2 items-center'>
           <div className='order-1 lg:order-none flex justify-center'>
             <div className='w-full max-w-[150px] sm:max-w-[200px] md:max-w-[300px]'>
