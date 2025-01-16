@@ -1,4 +1,4 @@
-const { getDataConnect, validateArgs } = require('firebase/data-connect');
+import { getDataConnect, validateArgs } from 'firebase/data-connect'
 
 const connectorConfig = {
   connector: 'default',
