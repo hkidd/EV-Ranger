@@ -42,7 +42,7 @@ export const searchLocation = async (
   proximity?: [number, number]
 ): Promise<GeocodingResponse> => {
   try {
-    const response = await fetch(`${env.API_BASE_URL}/api/geocoding/search`, {
+    const response = await fetch(`${env.API_BASE_URL}/geocoding/search`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -66,7 +66,7 @@ export const fetchChargingStations = async (
   radius: number
 ): Promise<{ stations: ChargingStation[]; error?: string }> => {
   try {
-    const response = await fetch(`${env.API_BASE_URL}/api/charging-stations`, {
+    const response = await fetch(`${env.API_BASE_URL}/charging-stations`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -90,7 +90,7 @@ export const getRoute = async (
   end: [number, number]
 ): Promise<RouteResponse> => {
   try {
-    const response = await fetch(`${env.API_BASE_URL}/api/directions`, {
+    const response = await fetch(`${env.API_BASE_URL}/directions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
