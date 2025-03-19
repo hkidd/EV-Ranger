@@ -36,26 +36,22 @@ interface RouteResponse {
   error?: string
 }
 
-export async function searchLocation(
+export const searchLocation = async (
   query: string,
   limit: number = 5,
   proximity?: [number, number]
-): Promise<GeocodingResponse> {
+): Promise<GeocodingResponse> => {
   try {
-    const response = await fetch(`${env.API_BASE_URL}/geocoding/search`, {
+    const response = await fetch(`${env.API_BASE_URL}/api/geocoding/search`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        query,
-        limit,
-        proximity
-      })
+      body: JSON.stringify({ query, limit, proximity })
     })
 
     if (!response.ok) {
-      throw new Error(`Geocoding API Error: ${response.status}`)
+      throw new Error('Failed to search location')
     }
 
     return await response.json()
@@ -70,7 +66,7 @@ export const fetchChargingStations = async (
   radius: number
 ): Promise<{ stations: ChargingStation[]; error?: string }> => {
   try {
-    const response = await fetch(`${env.API_BASE_URL}/charging-stations`, {
+    const response = await fetch(`${env.API_BASE_URL}/api/charging-stations`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -94,7 +90,7 @@ export const getRoute = async (
   end: [number, number]
 ): Promise<RouteResponse> => {
   try {
-    const response = await fetch(`${env.API_BASE_URL}/directions`, {
+    const response = await fetch(`${env.API_BASE_URL}/api/directions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
