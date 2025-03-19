@@ -3,7 +3,6 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css'
 import { SelectedCar } from '../../types'
 import useDebounce from '../../hooks/useDebounce'
-import MapControls from './MapControls'
 import MapLegend from './MapLegend'
 import { useMapbox } from '../../hooks/useMapbox'
 import { useRangeVisualization } from '../../hooks/useRangeVisualization'
@@ -35,9 +34,7 @@ const SearchMap: React.FC<SearchMapProps> = ({
     marker,
     markerPosition,
     handleLocationFound,
-    updateMarkerPosition,
-    toggleSatelliteView,
-    satelliteViewActive
+    updateMarkerPosition
   } = useMapbox(mapContainer as React.RefObject<HTMLDivElement>)
 
   const { isLoadingRange, updateRanges, clearRanges, legendItems } =
@@ -216,15 +213,6 @@ const SearchMap: React.FC<SearchMapProps> = ({
         ref={mapContainer}
         className='h-full w-full rounded-xl'
         style={{ position: 'relative' }}
-      />
-
-      {/* Map Controls Component */}
-      <MapControls
-        map={map.current}
-        onToggleSatellite={toggleSatelliteView}
-        satelliteActive={satelliteViewActive.current || false}
-        // onToggleChargingStations={handleToggleChargingStations}
-        // chargingStationsActive={chargingStationsActive}
       />
 
       {/* Legend Component */}
