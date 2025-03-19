@@ -7,7 +7,6 @@ import MapControls from './MapControls'
 import MapLegend from './MapLegend'
 import { useMapbox } from '../../hooks/useMapbox'
 import { useRangeVisualization } from '../../hooks/useRangeVisualization'
-// import { useChargingStations } from '../../hooks/useChargingStations'
 import { useTheme } from '../../context/ThemeContext'
 
 interface SearchMapProps {
@@ -27,7 +26,7 @@ const SearchMap: React.FC<SearchMapProps> = ({
   // const [chargingStationsActive, setChargingStationsActive] = useState<boolean>(false)
   const { isDarkMode } = useTheme()
 
-  // Debounce selected cars to prevent excessive API calls
+  // Debounce selected cars to prevent too frequent updates
   const debouncedSelectedCars = useDebounce(selectedCars, 500)
 
   // Use our custom hooks

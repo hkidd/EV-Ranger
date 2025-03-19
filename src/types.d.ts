@@ -39,6 +39,7 @@ export interface RangeMaps {
 
 export interface CarListProps {
   cars: Car[]
+  filteredCars: Car[]
   selectedCars: SelectedCar[]
   onSelectionChange: (
     carId: string,

@@ -202,7 +202,8 @@ const Dashboard: React.FC = () => {
             </div>
             <div className='flex-grow overflow-auto p-6 pt-0'>
               <CarList
-                cars={filteredCars}
+                cars={cars}
+                filteredCars={filteredCars}
                 selectedCars={selectedCars}
                 onSelectionChange={handleSelectionChange}
                 onDeselect={handleDeselect}

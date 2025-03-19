@@ -4,6 +4,7 @@ import { Car, CarListProps, CarVariant, SelectedCar } from '../types'
 
 const CarList: React.FC<CarListProps> = ({
   cars,
+  filteredCars,
   selectedCars,
   onSelectionChange,
   onDeselect,
@@ -45,7 +46,7 @@ const CarList: React.FC<CarListProps> = ({
     selectedCar: SelectedCar
   }[]
 
-  const availableVariants = cars.flatMap((car) =>
+  const availableVariants = filteredCars.flatMap((car) =>
     car.variants
       .filter(
         (variant) =>
