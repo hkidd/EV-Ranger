@@ -7,7 +7,6 @@ import {
   Link,
   NavbarMenu,
   NavbarMenuItem,
-  NavbarMenuToggle,
   Switch
 } from '@nextui-org/react'
 import EVRangerBanner from '../../assets/Logos/BannerNoBkg.svg'
