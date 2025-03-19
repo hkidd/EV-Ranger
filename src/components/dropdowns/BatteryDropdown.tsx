@@ -5,6 +5,7 @@ import {
   DropdownMenu,
   DropdownItem
 } from '@nextui-org/react'
+import { useTheme } from '../../context/ThemeContext'
 
 interface BatteryDropdownProps {
   selectedBattery: string
@@ -17,11 +18,17 @@ const BatteryDropdown: React.FC<BatteryDropdownProps> = ({
   batteries,
   onSelect
 }) => {
+  const { isDarkMode } = useTheme()
+
   return (
     <Dropdown>
       <DropdownTrigger>
         <button
-          className='px-4 py-2 text-sm bg-gray-200 rounded hover:bg-gray-300'
+          className={`px-4 py-2 text-sm rounded transition-colors ${
+            isDarkMode
+              ? 'bg-content2 text-foreground hover:bg-content3'
+              : 'bg-gray-200 hover:bg-gray-300'
+          }`}
           onClick={(e) => e.stopPropagation()} // Prevent click propagation
         >
           Battery: {selectedBattery}
@@ -32,9 +39,7 @@ const BatteryDropdown: React.FC<BatteryDropdownProps> = ({
         onAction={(key) => onSelect(key as string)}
       >
         {batteries.map((battery) => (
-          <DropdownItem key={battery}>
-            {battery}
-          </DropdownItem>
+          <DropdownItem key={battery}>{battery}</DropdownItem>
         ))}
       </DropdownMenu>
     </Dropdown>

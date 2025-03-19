@@ -19,6 +19,8 @@ interface Car {
 
 export interface SelectedCar {
   carId: string
+  brand: string
+  model: string
   variantName: string
   generation?: number
   battery: string

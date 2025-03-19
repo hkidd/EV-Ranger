@@ -1,23 +1,24 @@
-import React, { createContext, useState, ReactNode } from 'react'
+import React, { createContext } from 'react'
 
-interface TempContextType {
+type TemperatureUnit = 'F' | 'C'
+
+export interface TempContextType {
   externalTemp: number
   setExternalTemp: (temp: number) => void
+  tempUnit: TemperatureUnit
+  toggleTempUnit: () => void
+  getTempInUnit: (temp: number) => number
+  getDisplayTemp: () => string
+  calculateTempModifier: (temp: number) => number
 }
 
-export const TempContext = createContext<TempContextType | undefined>(undefined)
+export const TempContext = createContext<TempContextType | null>(null)
 
-interface TempProviderProps {
-  children: ReactNode
-}
-
-export const TempProvider: React.FC<TempProviderProps> = ({ children }) => {
-  // Set the default external temperature to 70°F
-  const [externalTemp, setExternalTemp] = useState<number>(70)
-
-  return (
-    <TempContext.Provider value={{ externalTemp, setExternalTemp }}>
-      {children}
-    </TempContext.Provider>
-  )
+// Custom hook for using the temperature context
+export const useTemp = () => {
+  const context = React.useContext(TempContext)
+  if (!context) {
+    throw new Error('useTemp must be used within a TempProvider')
+  }
+  return context
 }

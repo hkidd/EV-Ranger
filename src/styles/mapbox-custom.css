@@ -1,0 +1,241 @@
+/* Custom control styling */
+.mapboxgl-ctrl-group {
+  @apply bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden;
+}
+
+.mapboxgl-ctrl-icon {
+  @apply text-gray-600 dark:text-gray-300;
+}
+
+.mapboxgl-ctrl-icon:hover {
+  @apply bg-gray-100 dark:bg-gray-700;
+}
+
+.mapboxgl-ctrl-icon.active {
+  background-color: #e0e0e0;
+  box-shadow: inset 0 0 0 1px #0078ff;
+}
+
+.dark .mapboxgl-ctrl-icon.active {
+  background-color: #374151;
+  box-shadow: inset 0 0 0 1px #3b82f6;
+}
+
+/* Charging station marker styling */
+.charging-station-marker {
+  @apply bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-md rounded-lg p-2;
+}
+
+.charging-station-marker .station-name {
+  @apply font-semibold text-gray-900 dark:text-gray-100;
+}
+
+.charging-station-marker .station-address {
+  @apply text-sm text-gray-600 dark:text-gray-400;
+}
+
+.charging-station-marker .station-status {
+  @apply text-xs font-medium;
+}
+
+.charging-station-marker .status-available {
+  @apply text-green-600 dark:text-green-400;
+}
+
+.charging-station-marker .status-occupied {
+  @apply text-red-600 dark:text-red-400;
+}
+
+.charging-station-marker .status-unknown {
+  @apply text-gray-600 dark:text-gray-400;
+}
+
+/* Additional wrapper for Mapbox markers to prevent positioning issues */
+.mapboxgl-marker {
+  transform-origin: center center !important;
+  transform-style: preserve-3d !important;
+}
+
+/* Popup styling */
+.mapboxgl-popup-content {
+  @apply bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg shadow-lg p-4;
+}
+
+.mapboxgl-popup-content h3 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.dark .mapboxgl-popup-content h3 {
+  color: #f3f4f6;
+}
+
+.mapboxgl-popup-content p {
+  margin: 4px 0;
+  font-size: 12px;
+  color: #4b5563;
+}
+
+.dark .mapboxgl-popup-content p {
+  color: #9ca3af;
+}
+
+/* Make sure map container is positioned correctly */
+.map-container-wrapper {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+/* Toggle button styles */
+.charging-toggle,
+.satellite-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: white;
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.dark .charging-toggle,
+.dark .satellite-toggle {
+  background: #1f2937;
+}
+
+.charging-toggle.active,
+.satellite-toggle.active {
+  background-color: #e0e0e0;
+  box-shadow: inset 0 0 0 1px #0078ff;
+}
+
+.dark .charging-toggle.active,
+.dark .satellite-toggle.active {
+  background-color: #374151;
+  box-shadow: inset 0 0 0 1px #3b82f6;
+}
+
+/* Custom map controls positioned to avoid conflicts with built-in controls */
+.custom-map-controls {
+  position: absolute;
+  top: 180px;
+  right: 10px;
+  z-index: 5;
+  width: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Loading overlay */
+.loading-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
+/* Address display */
+.address-display {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  background-color: white;
+  padding: 8px;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  max-width: 280px;
+  z-index: 10;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .custom-map-controls {
+    top: 140px;
+    right: 10px;
+  }
+
+  .address-display {
+    bottom: 10px;
+    left: 10px;
+    max-width: 200px;
+  }
+}
+
+/* Mapbox Geocoder */
+.mapboxgl-ctrl-geocoder {
+  @apply bg-white dark:bg-gray-800 shadow-md rounded-lg;
+}
+
+.mapboxgl-ctrl-geocoder input {
+  @apply text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400;
+}
+
+.mapboxgl-ctrl-geocoder .suggestions {
+  @apply bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100;
+}
+
+.mapboxgl-ctrl-geocoder .suggestions .active > a,
+.mapboxgl-ctrl-geocoder .suggestions a:hover {
+  @apply bg-gray-100 dark:bg-gray-700;
+}
+
+/* Mapbox Navigation Controls */
+.mapboxgl-ctrl-zoom-in,
+.mapboxgl-ctrl-zoom-out {
+  @apply text-gray-600 dark:text-gray-300;
+}
+
+.mapboxgl-ctrl-zoom-in:hover,
+.mapboxgl-ctrl-zoom-out:hover {
+  @apply bg-gray-100 dark:bg-gray-700;
+}
+
+.mapboxgl-ctrl-zoom-in:active,
+.mapboxgl-ctrl-zoom-out:active {
+  @apply bg-gray-200 dark:bg-gray-600;
+}
+
+/* Mapbox Compass */
+.mapboxgl-ctrl-compass {
+  @apply text-gray-600 dark:text-gray-300;
+}
+
+.mapboxgl-ctrl-compass:hover {
+  @apply bg-gray-100 dark:bg-gray-700;
+}
+
+.mapboxgl-ctrl-compass:active {
+  @apply bg-gray-200 dark:bg-gray-600;
+}
+
+/* Mapbox Scale */
+.mapboxgl-ctrl-scale {
+  @apply text-gray-600 dark:text-gray-300;
+}
+
+/* Mapbox Attribution */
+.mapboxgl-ctrl-attrib {
+  @apply text-gray-600 dark:text-gray-300;
+}
+
+.mapboxgl-ctrl-attrib a {
+  @apply text-gray-600 dark:text-gray-300;
+}
+
+.mapboxgl-ctrl-attrib a:hover {
+  @apply text-gray-900 dark:text-gray-100;
+}

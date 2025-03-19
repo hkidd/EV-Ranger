@@ -1,17 +1,22 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState, useRef } from 'react'
 import {
   Button,
   Card,
   CardHeader,
   CardBody,
   Slider,
-  Divider
+  Divider,
+  Tooltip
 } from '@nextui-org/react'
 import WheelDropdown from './dropdowns/WheelDropdown'
 import BatteryDropdown from './dropdowns/BatteryDropdown'
 import { HexColorPicker } from 'react-colorful'
 import { CarCardProps } from '../types'
-import { PiThermometerBold } from 'react-icons/pi'
+import {
+  PiThermometerBold,
+  PiThermometerCold,
+  PiThermometerHot
+} from 'react-icons/pi'
 import { FiX } from 'react-icons/fi'
 
 const CarCard: React.FC<CarCardProps> = ({
@@ -30,6 +35,8 @@ const CarCard: React.FC<CarCardProps> = ({
   const [currentColor, setCurrentColor] = useState(
     selectedCar?.color || '#4ECCA3'
   )
+  const [prevRange, setPrevRange] = useState<number | null>(null)
+  const rangeRef = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
     if (selectedCar?.color) {
@@ -86,26 +93,55 @@ const CarCard: React.FC<CarCardProps> = ({
   }
 
   const displayRange = useMemo(() => {
+    // Store previous range for animation effect
+    if (prevRange === null) {
+      setPrevRange(variant.range)
+    }
+
+    let calculatedRange: number
+
     if (!isSelected || !selectedCar) {
       // fallback to base variant range
       const base = variant.range
-      return Math.round(base * (externalTempAdjustment ? tempModifier : 1))
+      calculatedRange = Math.round(
+        base * (externalTempAdjustment ? tempModifier : 1)
+      )
+    } else {
+      // selectedCar is chosen.
+      // Convert the slider fraction to a final range.
+      const baseRange = selectedCar.range
+      const sliderFrac = selectedCar.sliderFraction ?? 1
+      calculatedRange = Math.round(
+        baseRange * sliderFrac * (externalTempAdjustment ? tempModifier : 1)
+      )
     }
 
-    // selectedCar is chosen.
-    // Convert the slider fraction to a final range.
-    const baseRange = selectedCar.range
-    const sliderFrac = selectedCar.sliderFraction ?? 1
-    const finalRange =
-      baseRange * sliderFrac * (externalTempAdjustment ? tempModifier : 1)
+    // Animate range change if different from previous
+    if (
+      prevRange !== null &&
+      prevRange !== calculatedRange &&
+      rangeRef.current
+    ) {
+      // Add animation class
+      rangeRef.current.classList.add('animate-pulse')
 
-    return Math.round(finalRange)
+      // Remove animation class after animation completes
+      setTimeout(() => {
+        if (rangeRef.current) {
+          rangeRef.current.classList.remove('animate-pulse')
+          setPrevRange(calculatedRange)
+        }
+      }, 500)
+    }
+
+    return calculatedRange
   }, [
     isSelected,
     selectedCar,
     variant.range,
     externalTempAdjustment,
-    tempModifier
+    tempModifier,
+    prevRange
   ])
 
   const handleColorChange = (color: string) => {
@@ -114,6 +150,25 @@ const CarCard: React.FC<CarCardProps> = ({
       onColorChange(variant.id, color)
     }
   }
+
+  // Get temperature impact icon
+  const getTempIcon = () => {
+    if (!externalTempAdjustment) return null
+
+    if (tempModifier >= 0.95) {
+      return <PiThermometerBold className='text-success' />
+    } else if (tempModifier >= 0.8) {
+      return <PiThermometerHot className='text-warning' />
+    } else {
+      return <PiThermometerCold className='text-danger' />
+    }
+  }
+
+  // Calculate percentage impact of temperature on range
+  const tempImpactPercent = useMemo(() => {
+    if (!externalTempAdjustment) return null
+    return Math.round((tempModifier - 1) * 100)
+  }, [externalTempAdjustment, tempModifier])
 
   return (
     <div
@@ -139,7 +194,7 @@ const CarCard: React.FC<CarCardProps> = ({
                   selectedCar &&
                   onDeselect(variant.id, variant.name, variant.generation)
                 }
-                className=' text-white hover:text-secondary flex bg-primary h-5 w-5 p-0 m-0 -mb-6'
+                className='text-white hover:text-secondary flex bg-primary h-5 w-5 p-0 m-0 -mb-6'
                 size='sm'
                 isIconOnly
               >
@@ -153,20 +208,40 @@ const CarCard: React.FC<CarCardProps> = ({
               ? `(Gen ${variant.generation})`
               : ''}
           </h2>
-          <p className='text-gray-600 text-xs w-5/6'>
+          <p className='text-gray-600 dark:text-gray-400 text-xs w-5/6'>
             Approx. starting price: $
             {variant.price ? variant.price.toLocaleString() : 'N/A'} USD
           </p>
         </CardHeader>
         <Divider />
         <CardBody className='py-2'>
-          <p className='text-xs inline-flex items-center'>
-            Range: <span className='font-bold mx-1'>{displayRange} miles</span>{' '}
-            (EPA est.)
-            {externalTempAdjustment ? (
-              <PiThermometerBold className='mx-1' color='#4ECCA3' />
-            ) : null}
-          </p>
+          <div className='text-xs flex items-center justify-between'>
+            <div className='flex items-center'>
+              <span className='text-gray-600 dark:text-gray-400'>Range:</span>
+              <span
+                ref={rangeRef}
+                className='font-bold mx-1 transition-all duration-300'
+              >
+                {displayRange} miles
+              </span>
+              <span className='text-gray-600 dark:text-gray-400'>
+                (EPA est.)
+              </span>
+            </div>
+
+            {externalTempAdjustment && (
+              <Tooltip
+                content={
+                  tempImpactPercent && tempImpactPercent !== 0
+                    ? `Temperature impact: ${tempImpactPercent > 0 ? '+' : ''}${tempImpactPercent}%`
+                    : 'Optimal temperature'
+                }
+              >
+                <div className='flex items-center'>{getTempIcon()}</div>
+              </Tooltip>
+            )}
+          </div>
+
           {isSelected && selectedCar && (
             <div className='mt-2' onClick={(e) => e.stopPropagation()}>
               <Slider
@@ -199,7 +274,7 @@ const CarCard: React.FC<CarCardProps> = ({
                       batteries={variant.battery_size ?? []}
                     />
                   ) : (
-                    <p className='text-xs text-gray-500'>
+                    <p className='text-xs text-gray-500 dark:text-gray-400'>
                       No battery options available.
                     </p>
                   )}
@@ -212,7 +287,7 @@ const CarCard: React.FC<CarCardProps> = ({
                       wheels={variant.wheels ?? []}
                     />
                   ) : (
-                    <p className='text-xs text-gray-500'>
+                    <p className='text-xs text-gray-500 dark:text-gray-400'>
                       No wheel options available.
                     </p>
                   )}
@@ -224,13 +299,13 @@ const CarCard: React.FC<CarCardProps> = ({
                     e.stopPropagation()
                     setIsColorPickerVisible(!isColorPickerVisible)
                   }}
-                  className={`px-2 py-1 text-[${currentColor}] rounded flex items-center`}
+                  className={`px-2 py-1 rounded flex items-center`}
                 >
                   {isColorPickerVisible ? (
                     ''
                   ) : (
                     <div
-                      className='w-4 h-4'
+                      className='w-4 h-4 rounded-full border border-gray-300'
                       style={{ backgroundColor: currentColor }}
                     />
                   )}
@@ -246,7 +321,7 @@ const CarCard: React.FC<CarCardProps> = ({
                     />
                     <button
                       onClick={() => setIsColorPickerVisible(false)}
-                      className='px-2 py-1 text-gray-600 text-xs rounded mt-2'
+                      className='px-2 py-1 text-gray-600 dark:text-gray-400 text-xs rounded mt-2'
                     >
                       Close
                     </button>

@@ -1,6 +1,6 @@
-import React, { useContext, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import SearchInput from '../../components/SearchInput'
-import SearchMap from '../../components/Maps/SearchMap'
+import SearchMap from '../../components/map/SearchMap'
 import CarList from '../../components/CarList'
 import { getRandomColor } from '../../utils/helpers'
 import { useCarsQuery } from '../../queries/carQuery'
@@ -10,8 +10,7 @@ import { getRangeValue } from '../../utils/getRangeValue'
 import { CarVariant } from '../../types.d'
 import ExternalTempModifier from '../../components/ExternalTempModifier'
 import ExtTempCheckbox from '../../components/ExtTempCheckbox'
-import { TempContext } from '../../context/TempContext'
-import { getTempModifier } from '../../utils/temperatureModifier'
+import { useTemp } from '../../context/TempContext'
 
 const Dashboard: React.FC = () => {
   const [selectedCars, setSelectedCars] = useState<SelectedCar[]>([])
@@ -20,6 +19,10 @@ const Dashboard: React.FC = () => {
   const [isMapVisible, setIsMapVisible] = useState(true)
 
   const { data: cars = [], isLoading, isError } = useCarsQuery()
+  const { externalTemp, calculateTempModifier } = useTemp()
+
+  // Calculate temperature modifier
+  const tempModifier = calculateTempModifier(externalTemp)
 
   const handleToggleMap = () => {
     setIsMapVisible(!isMapVisible)
@@ -92,6 +95,8 @@ const Dashboard: React.FC = () => {
           ...prev,
           {
             carId,
+            brand: car.brand,
+            model: car.model,
             variantName,
             generation,
             battery,
@@ -141,13 +146,6 @@ const Dashboard: React.FC = () => {
     setSelectedCars(currentSelections)
   }
 
-  const tempContext = useContext(TempContext)
-  if (!tempContext) {
-    throw new Error('CarCard must be used within a TempProvider')
-  }
-  const { externalTemp } = tempContext
-  const tempModifier = getTempModifier(externalTemp)
-
   if (isLoading) {
     return (
       <div className='flex flex-col md:flex-row h-screen-minus-header relative'>
@@ -156,7 +154,7 @@ const Dashboard: React.FC = () => {
           <Skeleton className='w-full h-full rounded-lg' />
         </div>
         {/* Search section Skeleton */}
-        <div className='order-2 md:order-1 w-full md:w-1/3 flex flex-col bg-white z-10 h-1/2 md:h-full overflow-auto p-6'>
+        <div className='order-2 md:order-1 w-full md:w-1/3 flex flex-col bg-background dark:bg-background z-10 h-1/2 md:h-full overflow-auto p-6'>
           {/* Search Input Skeleton */}
           <Skeleton className='h-10 w-3/4 mb-6 rounded' />
           {/* CarList Header Skeleton */}
@@ -180,7 +178,7 @@ const Dashboard: React.FC = () => {
         />
       </div>
       <div
-        className={`order-2 md:order-1 w-full md:w-1/3 flex flex-col bg-white z-10 ${isMapVisible ? 'h-1/2' : 'h-full'} md:h-full overflow-auto md:py-6 md:px-0`}
+        className={`order-2 md:order-1 w-full md:w-1/3 flex flex-col bg-background dark:bg-background z-10 ${isMapVisible ? 'h-1/2' : 'h-full'} md:h-full overflow-auto md:py-6 md:px-0`}
       >
         <div>
           <SearchInput
@@ -198,6 +196,7 @@ const Dashboard: React.FC = () => {
             <div className='flex flex-col px-6 py-4 md:p-6 pt-0'>
               <ExtTempCheckbox
                 setExternalTempAdjustment={setExternalTempAdjustment}
+                externalTempAdjustment={externalTempAdjustment}
               />
               {externalTempAdjustment ? <ExternalTempModifier /> : null}
             </div>

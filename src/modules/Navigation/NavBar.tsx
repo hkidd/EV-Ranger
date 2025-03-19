@@ -7,9 +7,12 @@ import {
   Link,
   NavbarMenu,
   NavbarMenuItem,
-  NavbarMenuToggle
+  NavbarMenuToggle,
+  Switch
 } from '@nextui-org/react'
 import EVRangerBanner from '../../assets/Logos/BannerNoBkg.svg'
+import { useTheme } from '../../context/ThemeContext'
+import { SunIcon, MoonIcon } from './ThemeIcons'
 
 interface NavBarProps {
   setRun: React.Dispatch<React.SetStateAction<boolean>>
@@ -18,6 +21,7 @@ interface NavBarProps {
 
 export default function NavBar({ setRun, hideTourButton }: NavBarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { isDarkMode, toggleTheme } = useTheme()
 
   return (
     <Navbar
@@ -42,17 +46,27 @@ export default function NavBar({ setRun, hideTourButton }: NavBarProps) {
               Tour Guide
             </button>
           )}
+          <div className='flex items-center justify-between ml-4'>
+            <Switch
+              size='sm'
+              isSelected={!isDarkMode}
+              onValueChange={() => toggleTheme()}
+              startContent={<SunIcon />}
+              endContent={<MoonIcon />}
+              classNames={{
+                wrapper: 'group-data-[selected=true]:bg-[#4ECCA3]',
+                thumb: 'group-data-[selected=true]:bg-white'
+              }}
+            />
+          </div>
         </NavbarBrand>
-        <div className='flex md:hidden h-6'>
-          <NavbarMenuToggle aria-label='toggle menu' />
-        </div>
       </div>
       {/* Desktop nav items */}
       <NavbarContent className='hidden md:flex gap-4 w-full md:justify-center mt-4'>
         <NavbarItem isActive={window.location.pathname === '/about'}>
           <Link
             color={
-              window.location.pathname === '/about' ? 'primary' : 'secondary'
+              window.location.pathname === '/about' ? 'primary' : 'foreground'
             }
             href='/about'
           >
@@ -63,7 +77,7 @@ export default function NavBar({ setRun, hideTourButton }: NavBarProps) {
         <NavbarItem isActive={window.location.pathname === '/explore'}>
           <Link
             color={
-              window.location.pathname === '/explore' ? 'primary' : 'secondary'
+              window.location.pathname === '/explore' ? 'primary' : 'foreground'
             }
             href='/explore'
           >

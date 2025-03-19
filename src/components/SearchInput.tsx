@@ -21,12 +21,14 @@ const SearchInput: React.FC<SearchInputProps> = ({
   }
 
   return (
-    <div className='px-6 pt-0 pb-4 md:p-6 md:pb-0 bg-white flex flex-col gap-4 w-full select-an-ev'>
-      <h2 className='text-lg font-bold text-center md:text-left hidden md:block'>
+    <div className='px-6 pt-0 pb-4 md:p-6 md:pb-0 bg-background dark:bg-background flex flex-col gap-4 w-full car-search-container'>
+      <h2 className='text-lg font-bold text-center md:text-left hidden md:block text-foreground dark:text-foreground'>
         Search for an EV
       </h2>
-      <div className={`inline-flex items-center justify-evenly visible md:hidden ${!isMapVisible ? 'pt-4' : ''}`}>
-        <h2 className='text-lg font-bold text-center md:text-left'>
+      <div
+        className={`inline-flex items-center justify-evenly visible md:hidden ${!isMapVisible ? 'pt-4' : ''}`}
+      >
+        <h2 className='text-lg font-bold text-center md:text-left text-foreground dark:text-foreground'>
           Search for an EV
         </h2>
         <Button onPress={handleToggleMap} color='primary' className='h-6'>
@@ -37,6 +39,9 @@ const SearchInput: React.FC<SearchInputProps> = ({
         placeholder='Search for a make or model...'
         value={searchQuery}
         onChange={handleInputChange}
+        classNames={{
+          inputWrapper: 'bg-default-100 dark:bg-default-100'
+        }}
       />
     </div>
   )

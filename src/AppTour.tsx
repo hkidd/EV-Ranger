@@ -8,11 +8,11 @@ interface AppTourProps {
 
 const steps: Step[] = [
   {
-    target: '.start-with-search',
+    target: '.mapboxgl-ctrl-geocoder',
     content: 'Start by searching for a location or address to fly to on the map'
   },
   {
-    target: '.select-an-ev',
+    target: '.car-search-container',
     content: "Then select one or more EV's to plot and compare range values!"
   }
 ]
