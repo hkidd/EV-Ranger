@@ -130,7 +130,8 @@ const MapLegend: React.FC<MapLegendProps> = ({ legendItems, onClose }) => {
                 </span>
               </div>
               <div className='text-[10px] italic'>
-                Range visualization based on road network and driving distances
+                Range visualization is approximate and may vary based on
+                driving conditions, battery state, and other factors.
               </div>
             </div>
 

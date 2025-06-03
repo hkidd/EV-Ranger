@@ -15,7 +15,7 @@ const ExtTempCheckbox: React.FC<ExtTempCheckboxProps> = ({
   const { externalTemp, tempUnit } = useTemp()
 
   return (
-    <div className={`inline-flex items-center gap-2 pb-2`}>
+    <div className={`inline-flex items-center gap-2`}>
       <Checkbox
         isSelected={externalTempAdjustment}
         radius='full'

@@ -178,7 +178,7 @@ const Dashboard: React.FC = () => {
         />
       </div>
       <div
-        className={`order-2 md:order-1 w-full md:w-1/3 flex flex-col bg-background dark:bg-background z-10 ${isMapVisible ? 'h-1/2' : 'h-full'} md:h-full overflow-auto md:py-6 md:px-0`}
+        className={`order-2 md:order-1 w-full md:w-1/3 flex flex-col bg-background dark:bg-background z-10 ${isMapVisible ? 'h-1/2' : 'h-full'} md:h-full overflow-auto md:px-0`}
       >
         <div>
           <SearchInput

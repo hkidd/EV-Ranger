@@ -46,13 +46,16 @@ const CarList: React.FC<CarListProps> = ({
     selectedCar: SelectedCar
   }[]
 
-  const availableVariants = filteredCars.flatMap((car) =>
-    car.variants
+const availableVariants = filteredCars.flatMap((car) => {
+    if (!car.variants || car.variants?.length === 0) return []
+    
+    return car.variants
       .filter(
         (variant) =>
           !isVariantSelected(variant.id, variant.name, variant.generation)
       )
       .map((variant) => ({ car, variant }))
+    }
   )
 
   return (
