@@ -1,5 +1,24 @@
 import { useState, useRef, useCallback } from 'react'
 import * as turf from '@turf/turf'
+import {
+    tomtomApi,
+    convertEpaRangeToEnergyBudget,
+    tomtomBoundaryToGeoJson
+} from '../api/tomtom'
+
+// TomTom API response types
+interface TomTomReachableRangeData {
+    reachableRange: {
+        boundary: Array<{
+            latitude: number
+            longitude: number
+        }>
+        center: {
+            latitude: number
+            longitude: number
+        }
+    }
+}
 
 interface MapRef {
     current: mapboxgl.Map | null
@@ -18,6 +37,7 @@ interface Car {
     range: number
     color?: string
     sliderFraction?: number
+    batteryCapacityKwh?: number
 }
 
 interface LegendItem {
@@ -27,20 +47,25 @@ interface LegendItem {
     variantName: string
     color: string
     range: number
+    accuracyLevel: 'tomtom' | 'algorithmic' | 'circle'
 }
 
-interface RoadAwareOptions {
+interface TomTomRangeOptions {
     enabled: boolean
+    fallbackToAlgorithmic: boolean
     fallbackToCircle: boolean
+    routeType: 'eco' | 'fast' | 'shortest'
     cacheTimeout: number // minutes
 }
 
-export const useRangeVisualization = (
+export const useTomTomRangeVisualization = (
     map: MapRef,
     isDarkMode: boolean,
-    roadAwareOptions: RoadAwareOptions = {
+    tomtomOptions: TomTomRangeOptions = {
         enabled: true,
+        fallbackToAlgorithmic: true,
         fallbackToCircle: true,
+        routeType: 'eco',
         cacheTimeout: 30
     }
 ) => {
@@ -49,33 +74,34 @@ export const useRangeVisualization = (
     const [legendItems, setLegendItems] = useState<LegendItem[]>([])
     const rangeFeatures = useRef<RangeFeature[]>([])
 
+    // Cache for TomTom responses
+    const tomtomCache = useRef<
+        Map<
+            string,
+            {
+                data: TomTomReachableRangeData
+                timestamp: number
+            }
+        >
+    >(new Map())
+
     // Store previous update info for optimization
     const prevUpdateRef = useRef({
         position: null as string | null,
         cars: null as string | null
     })
 
-    // Helper function to validate if a coordinate pair is valid
+    // Helper function to validate coordinates
     const isValidCoordinate = useCallback(
         (coord: [number, number]): boolean => {
-            if (!Array.isArray(coord) || coord.length !== 2) {
-                console.warn(
-                    'Coordinate is not an array with 2 elements:',
-                    coord
-                )
-                return false
-            }
-
+            if (!Array.isArray(coord) || coord.length !== 2) return false
             if (
                 !Number.isFinite(Number(coord[0])) ||
                 !Number.isFinite(Number(coord[1]))
-            ) {
-                console.warn('Coordinate contains non-finite values:', coord)
+            )
                 return false
-            }
 
             let lng, lat
-
             if (
                 Math.abs(Number(coord[0])) <= 180 &&
                 Math.abs(Number(coord[1])) <= 90
@@ -91,7 +117,6 @@ export const useRangeVisualization = (
                 coord[0] = lng
                 coord[1] = lat
             } else {
-                console.warn('Coordinate values out of range:', coord)
                 return false
             }
 
@@ -100,7 +125,7 @@ export const useRangeVisualization = (
         []
     )
 
-    // Create a circle feature with the given center and radius (fallback method)
+    // Create circle feature (fallback)
     const createCircleFeature = useCallback(
         (center: [number, number], rangeMiles: number) => {
             return turf.circle(center, rangeMiles, {
@@ -111,43 +136,7 @@ export const useRangeVisualization = (
         []
     )
 
-    // NEW: Create a road-aware polygon feature using algorithmic approach
-    const createRoadAwareFeature = useCallback(
-        async (
-            center: [number, number],
-            rangeMiles: number
-        ): Promise<GeoJSON.Feature<GeoJSON.Polygon>> => {
-            if (!roadAwareOptions.enabled) {
-                return createCircleFeature(center, rangeMiles)
-            }
-
-            try {
-                // Use algorithmic approach instead of API calls
-                const algorithmicShape = createAlgorithmicRangeShape(
-                    center,
-                    rangeMiles
-                )
-
-                return algorithmicShape
-            } catch (error) {
-                console.warn(
-                    'Algorithmic road-aware calculation failed, falling back to circle:',
-                    error
-                )
-                if (roadAwareOptions.fallbackToCircle) {
-                    return createCircleFeature(center, rangeMiles)
-                }
-                throw error
-            }
-        },
-        [
-            roadAwareOptions.enabled,
-            roadAwareOptions.fallbackToCircle,
-            createCircleFeature
-        ]
-    )
-
-    // NEW: Create realistic range shape using geographic algorithms
+    // Create algorithmic range shape (fallback from existing implementation)
     const createAlgorithmicRangeShape = useCallback(
         (
             center: [number, number],
@@ -155,10 +144,10 @@ export const useRangeVisualization = (
         ): GeoJSON.Feature<GeoJSON.Polygon> => {
             const [lng, lat] = center
 
-            // Determine geographic context
+            // Simplified algorithmic approach (extracted from original implementation)
             let roadPattern = {
-                primaryDirection: 90, // East-West default
-                secondaryDirection: 0, // North-South default
+                primaryDirection: 90,
+                secondaryDirection: 0,
                 coastalInfluence: 0.2,
                 mountainInfluence: 0.3,
                 urbanDensity: 0.5
@@ -167,52 +156,50 @@ export const useRangeVisualization = (
             let knownBarriers: Array<{ direction: number; severity: number }> =
                 []
 
-            // Texas - major east-west highways (I-10, I-20, I-30)
+            // Texas patterns
             if (lng >= -106 && lng <= -93 && lat >= 25 && lat <= 37) {
                 roadPattern = {
-                    primaryDirection: 90, // East-West (I-10, I-20)
-                    secondaryDirection: 0, // North-South (I-35, I-45)
+                    primaryDirection: 90,
+                    secondaryDirection: 0,
                     coastalInfluence: 0.3,
                     mountainInfluence: 0.1,
                     urbanDensity: 0.6
                 }
                 knownBarriers = [
-                    { direction: 180, severity: 0.6 }, // Gulf influence
-                    { direction: 225, severity: 0.3 } // Mexico border
+                    { direction: 180, severity: 0.6 },
+                    { direction: 225, severity: 0.3 }
                 ]
             }
-
-            // California - major north-south corridors
+            // California patterns
             else if (lng >= -125 && lng <= -114 && lat >= 32 && lat <= 42) {
                 roadPattern = {
-                    primaryDirection: 0, // North-South (I-5, US-101)
-                    secondaryDirection: 90, // East-West (I-10, I-80)
+                    primaryDirection: 0,
+                    secondaryDirection: 90,
                     coastalInfluence: 0.8,
                     mountainInfluence: 0.7,
                     urbanDensity: 0.8
                 }
                 knownBarriers = [
-                    { direction: 270, severity: 0.8 }, // Pacific Ocean
-                    { direction: 90, severity: 0.6 } // Sierra Nevada
+                    { direction: 270, severity: 0.8 },
+                    { direction: 90, severity: 0.6 }
                 ]
             }
-
-            // Florida - constrained by water
+            // Florida patterns
             else if (lng >= -87 && lng <= -80 && lat >= 24 && lat <= 31) {
                 roadPattern = {
-                    primaryDirection: 0, // North-South (I-95, I-75)
-                    secondaryDirection: 90, // East-West (I-4, I-10)
+                    primaryDirection: 0,
+                    secondaryDirection: 90,
                     coastalInfluence: 0.9,
                     mountainInfluence: 0.0,
                     urbanDensity: 0.7
                 }
                 knownBarriers = [
-                    { direction: 90, severity: 0.9 }, // Atlantic
-                    { direction: 270, severity: 0.8 } // Gulf
+                    { direction: 90, severity: 0.9 },
+                    { direction: 270, severity: 0.8 }
                 ]
             }
 
-            const sampleCount = 24 // Good balance of smoothness and performance
+            const sampleCount = 24
             const coordinates: number[][] = []
 
             for (let i = 0; i < sampleCount; i++) {
@@ -228,8 +215,6 @@ export const useRangeVisualization = (
                     bearing,
                     roadPattern.secondaryDirection
                 )
-
-                // Boost range along major highway corridors
                 const highwayBoost =
                     Math.max(primaryAlignment, secondaryAlignment * 0.7) * 0.25
                 rangeMultiplier += highwayBoost
@@ -245,82 +230,136 @@ export const useRangeVisualization = (
                     rangeMultiplier -= barrierPenalty
                 })
 
-                // Coastal and mountain influences
+                // Apply influences
                 if (roadPattern.coastalInfluence > 0.5) {
                     rangeMultiplier -= roadPattern.coastalInfluence * 0.1
                 }
-
                 if (roadPattern.mountainInfluence > 0.5) {
                     rangeMultiplier -= roadPattern.mountainInfluence * 0.15
                 }
-
-                // Urban density boost
                 rangeMultiplier += roadPattern.urbanDensity * 0.08
 
-                // Add subtle randomness for organic appearance
+                // Add randomness
                 const randomVariation = (Math.random() - 0.5) * 0.08
                 rangeMultiplier += randomVariation
 
-                // Clamp to reasonable bounds
+                // Clamp bounds
                 rangeMultiplier = Math.max(0.5, Math.min(1.4, rangeMultiplier))
 
                 const adjustedRange = baseRangeMiles * rangeMultiplier
-
                 const point = turf.destination(
                     turf.point(center),
                     adjustedRange,
                     bearing,
                     { units: 'miles' }
                 )
-
                 coordinates.push(point.geometry.coordinates)
             }
 
-            // Close the polygon
             coordinates.push(coordinates[0])
-
-            // Light smoothing to avoid sharp corners
-            const smoothedCoordinates = smoothPolygon(coordinates)
-
-            return turf.polygon([smoothedCoordinates])
+            return turf.polygon([coordinates])
         },
         []
     )
 
-    // Helper function to calculate alignment between two angles
+    // Helper function for angle alignment
     const getAlignment = (angle1: number, angle2: number): number => {
         const diff = Math.abs(((angle1 - angle2 + 180) % 360) - 180)
         return Math.max(0, 1 - diff / 90)
     }
 
-    // Helper function to smooth polygon coordinates
-    const smoothPolygon = (coordinates: number[][]): number[][] => {
-        if (coordinates.length < 4) return coordinates
+    // Create TomTom reachable range feature
+    const createTomTomRangeFeature = useCallback(
+        async (
+            center: [number, number],
+            rangeMiles: number,
+            batteryCapacityKwh: number = 100
+        ): Promise<{
+            feature: GeoJSON.Feature
+            accuracyLevel: 'tomtom' | 'algorithmic' | 'circle'
+        }> => {
+            if (!tomtomOptions.enabled) {
+                return {
+                    feature: createAlgorithmicRangeShape(center, rangeMiles),
+                    accuracyLevel: 'algorithmic'
+                }
+            }
 
-        const smoothed: number[][] = []
+            try {
+                const [lng, lat] = center
+                const cacheKey = `${lat.toFixed(4)},${lng.toFixed(4)},${rangeMiles.toFixed(1)},${batteryCapacityKwh}`
 
-        for (let i = 0; i < coordinates.length - 1; i++) {
-            const prev = coordinates[i === 0 ? coordinates.length - 2 : i - 1]
-            const curr = coordinates[i]
-            const next = coordinates[i + 1 === coordinates.length ? 1 : i + 1]
+                // Check cache first
+                const cached = tomtomCache.current.get(cacheKey)
+                if (
+                    cached &&
+                    Date.now() - cached.timestamp <
+                        tomtomOptions.cacheTimeout * 60000
+                ) {
+                    return {
+                        feature: tomtomBoundaryToGeoJson(
+                            cached.data.reachableRange.boundary
+                        ),
+                        accuracyLevel: 'tomtom'
+                    }
+                }
 
-            // Simple smoothing: average with neighbors
-            const smoothedLng = (prev[0] + curr[0] * 2 + next[0]) / 4
-            const smoothedLat = (prev[1] + curr[1] * 2 + next[1]) / 4
+                // Convert UI-calculated adjusted range to energy budget
+                // Note: rangeMiles already includes battery %, temperature, and slider adjustments from UI
+                const energyBudgetInkWh = convertEpaRangeToEnergyBudget(
+                    rangeMiles,
+                    batteryCapacityKwh
+                )
 
-            smoothed.push([smoothedLng, smoothedLat])
-        }
+                const response = await tomtomApi.getReachableRange({
+                    latitude: lat,
+                    longitude: lng,
+                    energyBudgetInkWh,
+                    routeType: tomtomOptions.routeType
+                })
 
-        // Close the polygon
-        smoothed.push(smoothed[0])
+                // Cache the response
+                tomtomCache.current.set(cacheKey, {
+                    data: response.data,
+                    timestamp: Date.now()
+                })
 
-        return smoothed
-    }
+                // Convert TomTom boundary to GeoJSON
+                const feature = tomtomBoundaryToGeoJson(
+                    response.data.reachableRange.boundary
+                )
+
+                return {
+                    feature,
+                    accuracyLevel: 'tomtom'
+                }
+            } catch (error) {
+                console.error('❌ TomTom API call failed:', error)
+
+                if (tomtomOptions.fallbackToAlgorithmic) {
+                    return {
+                        feature: createAlgorithmicRangeShape(
+                            center,
+                            rangeMiles
+                        ),
+                        accuracyLevel: 'algorithmic'
+                    }
+                } else if (tomtomOptions.fallbackToCircle) {
+                    return {
+                        feature: createCircleFeature(center, rangeMiles),
+                        accuracyLevel: 'circle'
+                    }
+                }
+
+                throw error
+            }
+        },
+        [tomtomOptions, createAlgorithmicRangeShape, createCircleFeature]
+    )
 
     // Helper function to modify colors
     const colorModifier = useCallback((hex: string, amount: number) => {
         hex = hex.replace('#', '')
-
         const num = parseInt(hex, 16)
         let r = (num >> 16) + amount
         let g = ((num >> 8) & 0x00ff) + amount
@@ -333,15 +372,19 @@ export const useRangeVisualization = (
         return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`
     }, [])
 
-    // UPDATED: Add a range overlay to the map (now supports both circles and algorithmic shapes)
+    // Add range overlay to map
     const addRangeOverlay = useCallback(
         async (
             center: [number, number],
             rangeMiles: number,
             carId: string,
-            color: string
-        ) => {
-            if (!map.current) return false
+            color: string,
+            batteryCapacityKwh?: number
+        ): Promise<{
+            success: boolean
+            accuracyLevel: 'tomtom' | 'algorithmic' | 'circle'
+        }> => {
+            if (!map.current) return { success: false, accuracyLevel: 'circle' }
 
             try {
                 const sourceId = `range-${carId}`
@@ -356,8 +399,13 @@ export const useRangeVisualization = (
                 if (map.current.getSource(sourceId))
                     map.current.removeSource(sourceId)
 
-                // Create feature (either circle or algorithmic shape)
-                const feature = await createRoadAwareFeature(center, rangeMiles)
+                // Create feature using TomTom or fallback
+                const { feature, accuracyLevel } =
+                    await createTomTomRangeFeature(
+                        center,
+                        rangeMiles,
+                        batteryCapacityKwh
+                    )
 
                 const fillColor = color
                 const borderColor = isDarkMode
@@ -370,7 +418,14 @@ export const useRangeVisualization = (
                     data: feature
                 })
 
-                // Add fill layer
+                // Add fill layer with opacity based on accuracy
+                const baseOpacity =
+                    accuracyLevel === 'tomtom'
+                        ? 0.4
+                        : accuracyLevel === 'algorithmic'
+                          ? 0.3
+                          : 0.25
+
                 map.current.addLayer(
                     {
                         id: layerId,
@@ -381,8 +436,8 @@ export const useRangeVisualization = (
                             'fill-opacity': [
                                 'case',
                                 ['boolean', ['feature-state', 'hover'], false],
-                                0.4,
-                                0.3
+                                baseOpacity + 0.1,
+                                baseOpacity
                             ],
                             'fill-translate': [0, 0],
                             'fill-antialias': true
@@ -391,17 +446,28 @@ export const useRangeVisualization = (
                     'water'
                 )
 
-                // Add border layer
+                // Add border layer with different styling based on accuracy
+                const borderWidth = accuracyLevel === 'tomtom' ? 2 : 1.5
+                const borderOpacity = accuracyLevel === 'tomtom' ? 0.9 : 0.8
+
+                // Create paint object conditionally
+                const borderPaint: mapboxgl.LinePaint = {
+                    'line-color': borderColor,
+                    'line-width': borderWidth,
+                    'line-opacity': borderOpacity
+                }
+
+                // Only add line-dasharray if it's a circle (fallback)
+                if (accuracyLevel === 'circle') {
+                    borderPaint['line-dasharray'] = [2, 2]
+                }
+
                 map.current.addLayer(
                     {
                         id: borderId,
                         type: 'line',
                         source: sourceId,
-                        paint: {
-                            'line-color': borderColor,
-                            'line-width': 1.5,
-                            'line-opacity': 0.8
-                        }
+                        paint: borderPaint
                     },
                     'water'
                 )
@@ -411,17 +477,17 @@ export const useRangeVisualization = (
                     { id: borderId, source: sourceId }
                 )
 
-                return true
+                return { success: true, accuracyLevel }
             } catch (error) {
                 console.error('Error adding range overlay:', error)
                 setError('Failed to visualize range. Please try again.')
-                return false
+                return { success: false, accuracyLevel: 'circle' }
             }
         },
-        [map, createRoadAwareFeature, isDarkMode, colorModifier]
+        [map, createTomTomRangeFeature, isDarkMode, colorModifier]
     )
 
-    // Clear all range visualizations from the map
+    // Clear all range visualizations
     const clearRanges = useCallback(() => {
         if (!map.current) return
 
@@ -462,9 +528,9 @@ export const useRangeVisualization = (
         setLegendItems([])
     }, [map])
 
-    // UPDATED: Update ranges for all selected cars (now uses algorithmic road-aware visualization)
+    // Update ranges for all selected cars
     const updateRanges = useCallback(
-        (
+        async (
             selectedCars: Car[],
             markerPosition: [number, number],
             externalTempAdjustment: boolean,
@@ -503,20 +569,11 @@ export const useRangeVisualization = (
                 )
                 .join(',')
 
-            // Check if only temperature changed
-            const onlyTempChanged =
-                prevUpdateRef.current.position === positionKey &&
-                prevUpdateRef.current.cars === carsKey
-
-            // Skip if already updating to prevent multiple simultaneous updates
             if (isUpdating) {
                 return
             }
 
-            prevUpdateRef.current = {
-                position: positionKey,
-                cars: carsKey
-            }
+            prevUpdateRef.current = { position: positionKey, cars: carsKey }
 
             setIsUpdating(true)
             clearRanges()
@@ -526,63 +583,53 @@ export const useRangeVisualization = (
                 return
             }
 
-            // Handle async operations properly with timeout
-            const timeoutId = setTimeout(
-                () => {
-                    const processRanges = async () => {
-                        try {
-                            // Process all cars - no staggered delay needed for algorithmic approach
-                            const promises = selectedCars.map(async (car) => {
-                                const baseRange = car.range || 250
-                                const fractionEffect = car.sliderFraction || 1
-                                const tempEffect = externalTempAdjustment
-                                    ? tempModifier
-                                    : 1
-                                const adjustedRange =
-                                    baseRange * fractionEffect * tempEffect
+            try {
+                const results = await Promise.all(
+                    selectedCars.map(async (car) => {
+                        const baseRange = car.range || 250
+                        const fractionEffect = car.sliderFraction || 1
+                        const tempEffect = externalTempAdjustment
+                            ? tempModifier
+                            : 1
+                        const adjustedRange =
+                            baseRange * fractionEffect * tempEffect
 
-                                return addRangeOverlay(
-                                    correctedPosition,
-                                    adjustedRange,
-                                    car.carId,
-                                    car.color || '#3B82F6'
-                                )
-                            })
+                        const result = await addRangeOverlay(
+                            correctedPosition,
+                            adjustedRange,
+                            car.carId,
+                            car.color || '#3B82F6',
+                            car.batteryCapacityKwh
+                        )
 
-                            await Promise.all(promises)
-
-                            setLegendItems(
-                                selectedCars.map((car) => ({
-                                    carId: car.carId,
-                                    brand: car.brand,
-                                    model: car.model,
-                                    variantName:
-                                        car.variantName || `Car ${car.carId}`,
-                                    color: car.color || '#3B82F6',
-                                    range: car.range || 250
-                                }))
-                            )
-                        } catch (error) {
-                            console.error(
-                                'Error creating range visualization:',
-                                error
-                            )
-                            setError(
-                                'Failed to create range visualization. Please try again.'
-                            )
-                        } finally {
-                            setIsUpdating(false)
+                        return {
+                            car,
+                            accuracyLevel: result.accuracyLevel,
+                            success: result.success
                         }
-                    }
+                    })
+                )
 
-                    processRanges()
-                },
-                onlyTempChanged ? 16 : 100 // Standard delays since no API calls
-            )
-
-            // Cleanup function to prevent memory leaks
-            return () => {
-                clearTimeout(timeoutId)
+                // Update legend with accuracy information
+                setLegendItems(
+                    results
+                        .filter((r) => r.success)
+                        .map(({ car, accuracyLevel }) => ({
+                            carId: car.carId,
+                            brand: car.brand,
+                            model: car.model,
+                            variantName: car.variantName || `Car ${car.carId}`,
+                            color: car.color || '#3B82F6',
+                            range: car.range || 250,
+                            accuracyLevel
+                        }))
+                )
+            } catch (error) {
+                console.error('Error creating range visualization:', error)
+                setError(
+                    'Failed to create range visualization. Please try again.'
+                )
+            } finally {
                 setIsUpdating(false)
             }
         },
@@ -594,6 +641,7 @@ export const useRangeVisualization = (
         error,
         legendItems,
         clearRanges,
-        updateRanges
+        updateRanges,
+        tomtomEnabled: tomtomOptions.enabled
     }
 }
