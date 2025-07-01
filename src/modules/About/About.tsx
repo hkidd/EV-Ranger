@@ -1,6 +1,7 @@
 import React from 'react'
 import ColorTreeLogo from '../../assets/Logos/ColorTreeLogoNoBkg.webp'
-import ExampleImage from '../../assets/Examples/EVRangerExample725.png'
+import ExampleImageLight from '../../assets/Examples/EVRangerEx725Light.png'
+import ExampleImageDark from '../../assets/Examples/EVRangerEx725Dark.png'
 import {
     HiOutlineMap,
     HiOutlineCalculator,
@@ -10,8 +11,11 @@ import {
     HiOutlineCog
 } from 'react-icons/hi'
 import { Card, CardBody, Chip } from '@nextui-org/react'
+import { useTheme } from '../../context/ThemeContext'
 
 const About: React.FC = () => {
+    const { isDarkMode } = useTheme()
+    
     const coreFeatures = [
         {
             title: 'Interactive Range Visualization',
@@ -81,7 +85,7 @@ const About: React.FC = () => {
                         {/* Main image container */}
                         <div className='relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-4 md:p-8 border border-divider/20'>
                             <img
-                                src={ExampleImage}
+                                src={isDarkMode ? ExampleImageDark : ExampleImageLight}
                                 alt='EV Ranger Interface - Interactive range visualization showing electric vehicle range overlay on map'
                                 className='w-full h-auto rounded-xl shadow-lg'
                             />
