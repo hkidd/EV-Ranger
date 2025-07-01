@@ -1,11 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css'
 import { SelectedCar } from '../../types'
 import useDebounce from '../../hooks/useDebounce'
 import MapLegend from './MapLegend'
+import ChargingStationControl from './ChargingStationControl'
 import { useMapbox } from '../../hooks/useMapbox'
 import { useTomTomRangeVisualization } from '../../hooks/useTomTomRangeVisualization'
+import { useChargingStations } from '../../hooks/useChargingStations'
 import { useTheme } from '../../context/ThemeContext'
 
 interface SearchMapProps {
@@ -22,7 +24,6 @@ const SearchMap: React.FC<SearchMapProps> = ({
     const mapContainer = useRef<HTMLDivElement>(null)
     const [isMapLoaded, setIsMapLoaded] = useState<boolean>(false)
     const [rangeUpdatePending, setRangeUpdatePending] = useState<boolean>(false)
-    // const [chargingStationsActive, setChargingStationsActive] = useState<boolean>(false)
     const { isDarkMode } = useTheme()
 
     // Debounce selected cars to prevent too frequent updates
@@ -40,37 +41,57 @@ const SearchMap: React.FC<SearchMapProps> = ({
     const { isLoadingRange, updateRanges, clearRanges, legendItems } =
         useTomTomRangeVisualization(map, isDarkMode)
 
-    // const { clearStations } = useChargingStations(map)
+    const {
+        isLoadingStations,
+        chargingStations,
+        stationsVisible,
+        filters,
+        fetchChargingStations,
+        clearStations,
+        updateFilters,
+        toggleStationsVisibility
+    } = useChargingStations(map as React.RefObject<mapboxgl.Map>)
 
     // Handle charging station toggle
-    // const handleToggleChargingStations = useCallback(() => {
-    //   setChargingStationsActive((prev) => {
-    //     if (!prev && markerPosition) {
-    //       // Calculate the maximum range among selected cars
-    //       const maxRange = Math.max(
-    //         ...debouncedSelectedCars.map((car) => {
-    //           const baseRange = car.range || 250
-    //           const fractionEffect = car.sliderFraction || 1
-    //           const tempEffect = externalTempAdjustment ? tempModifier : 1
-    //           return baseRange * fractionEffect * tempEffect
-    //         })
-    //       )
+    const handleToggleChargingStations = useCallback(() => {
+        if (
+            !stationsVisible &&
+            markerPosition &&
+            debouncedSelectedCars.length > 0
+        ) {
+            // Calculate the maximum range among selected cars (this will be used as search radius)
+            const maxRange = Math.max(
+                ...debouncedSelectedCars.map((car) => {
+                    const baseRange = car.range || 250
+                    const fractionEffect = car.sliderFraction || 1
+                    const tempEffect = externalTempAdjustment ? tempModifier : 1
+                    return baseRange * fractionEffect * tempEffect
+                })
+            )
 
-    //       // Fetch charging stations within the maximum range
-    //       fetchChargingStations(markerPosition, maxRange)
-    //     } else {
-    //       clearStations()
-    //     }
-    //     return !prev
-    //   })
-    // }, [
-    //   markerPosition,
-    //   debouncedSelectedCars,
-    //   externalTempAdjustment,
-    //   tempModifier,
-    //   fetchChargingStations,
-    //   clearStations
-    // ])
+            // Convert markerPosition to [lat, lng] format
+            const position: [number, number] = [
+                Number(markerPosition[1]), // Latitude
+                Number(markerPosition[0]) // Longitude
+            ]
+
+            // Use a much larger search radius to ensure we get all stations that might be within any range visualization
+            // TomTom API might have radius limitations, so let's use a more conservative but still large radius
+            const searchRadius = Math.min(Math.max(maxRange * 1.5, 100), 300) // Cap at 300 miles to avoid API limits
+
+            fetchChargingStations(position, searchRadius)
+        } else {
+            toggleStationsVisibility()
+        }
+    }, [
+        stationsVisible,
+        markerPosition,
+        debouncedSelectedCars,
+        externalTempAdjustment,
+        tempModifier,
+        fetchChargingStations,
+        toggleStationsVisibility
+    ])
 
     // Ensure proper map initialization
     useEffect(() => {
@@ -130,7 +151,7 @@ const SearchMap: React.FC<SearchMapProps> = ({
 
         if (debouncedSelectedCars.length === 0) {
             clearRanges()
-            // clearStations()
+            clearStations()
             return
         }
 
@@ -154,20 +175,20 @@ const SearchMap: React.FC<SearchMapProps> = ({
         )
 
         // Update charging stations if they're active
-        // if (chargingStationsActive) {
-        //   // Calculate the maximum range among selected cars
-        //   const maxRange = Math.max(
-        //     ...debouncedSelectedCars.map((car) => {
-        //       const baseRange = car.range || 250
-        //       const fractionEffect = car.sliderFraction || 1
-        //       const tempEffect = externalTempAdjustment ? tempModifier : 1
-        //       return baseRange * fractionEffect * tempEffect
-        //     })
-        //   )
+        if (stationsVisible) {
+            // Calculate the maximum range among selected cars
+            const maxRange = Math.max(
+                ...debouncedSelectedCars.map((car) => {
+                    const baseRange = car.range || 250
+                    const fractionEffect = car.sliderFraction || 1
+                    const tempEffect = externalTempAdjustment ? tempModifier : 1
+                    return baseRange * fractionEffect * tempEffect
+                })
+            )
 
-        //   // Fetch charging stations within the maximum range
-        //   fetchChargingStations(position, maxRange)
-        // }
+            // Fetch charging stations within the maximum range
+            fetchChargingStations(position, maxRange)
+        }
     }
 
     // Update ranges when necessary inputs change
@@ -219,11 +240,21 @@ const SearchMap: React.FC<SearchMapProps> = ({
             {/* Legend Component */}
             <MapLegend legendItems={legendItems} />
 
+            {/* Charging Station Control */}
+            <ChargingStationControl
+                filters={filters}
+                onFiltersChange={updateFilters}
+                stationCount={chargingStations.length}
+                isVisible={stationsVisible}
+                onToggle={handleToggleChargingStations}
+            />
+
             {/* Loading Overlay */}
-            {isLoadingRange && (
+            {(isLoadingRange || isLoadingStations) && (
                 <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-content1 dark:bg-content1 p-3 rounded-md shadow z-10'>
                     <p className='text-sm text-foreground dark:text-foreground'>
-                        Creating range visualization...
+                        {isLoadingRange && 'Creating range visualization...'}
+                        {isLoadingStations && 'Loading charging stations...'}
                     </p>
                 </div>
             )}

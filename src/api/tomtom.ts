@@ -38,6 +38,29 @@ export interface TomTomChargingStationsRequest {
   longitude: number;
   radius?: number;
   limit?: number;
+  chargerType?: 'fast' | 'level2' | 'level1' | 'all';
+}
+
+export interface ChargingStation {
+  id: string;
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  distance?: number;
+  phone?: string | null;
+  url?: string | null;
+  categories?: string[];
+  source: string;
+}
+
+export interface TomTomChargingStationsResponse {
+  success: boolean;
+  data: {
+    stations: ChargingStation[];
+    totalResults: number;
+  };
+  source: string;
 }
 
 export const tomtomApi = {
@@ -75,8 +98,8 @@ export const tomtomApi = {
     return response.json();
   },
 
-  async getChargingStations(params: TomTomChargingStationsRequest) {
-    const response = await fetch(`${API_BASE_URL}/api/tomtom/charging-stations`, {
+  async getChargingStations(params: TomTomChargingStationsRequest): Promise<TomTomChargingStationsResponse> {
+    const response = await fetch(`${API_BASE_URL}/tomtom/charging-stations`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

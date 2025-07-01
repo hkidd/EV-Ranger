@@ -12,11 +12,7 @@ import WheelDropdown from './dropdowns/WheelDropdown'
 import BatteryDropdown from './dropdowns/BatteryDropdown'
 import { HexColorPicker } from 'react-colorful'
 import { CarCardProps } from '../types'
-import {
-    PiThermometerBold,
-    PiThermometerCold,
-    PiThermometerHot
-} from 'react-icons/pi'
+import { PiThermometerBold } from 'react-icons/pi'
 import { FiX, FiZap } from 'react-icons/fi'
 
 const CarCard: React.FC<CarCardProps> = ({
@@ -98,15 +94,23 @@ const CarCard: React.FC<CarCardProps> = ({
     const getTempIcon = () => {
         if (!tempModifier) return null
 
-        if (tempModifier < 0.95) {
+        if (tempModifier >= 0.95) {
             return (
-                <PiThermometerCold className='text-blue-500 ml-1' size={14} />
+                <PiThermometerBold
+                    className='text-success-500 ml-1'
+                    size={14}
+                />
             )
-        } else if (tempModifier > 1.05) {
-            return <PiThermometerHot className='text-red-500 ml-1' size={14} />
+        } else if (tempModifier >= 0.85) {
+            return (
+                <PiThermometerBold
+                    className='text-warning-500 ml-1'
+                    size={14}
+                />
+            )
         } else {
             return (
-                <PiThermometerBold className='text-green-500 ml-1' size={14} />
+                <PiThermometerBold className='text-danger-500 ml-1' size={14} />
             )
         }
     }
@@ -245,7 +249,7 @@ const CarCard: React.FC<CarCardProps> = ({
 
                 <CardBody className='px-4 pb-3 pt-2'>
                     {/* Compact Range Display */}
-                    <div className='flex items-center justify-between mb-3 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-md'>
+                    <div className='flex items-center justify-between mb-3 p-2 bg-gray-100 dark:bg-gray-800/50 rounded-md'>
                         <div className='flex items-center gap-2'>
                             <FiZap className='text-primary' size={12} />
                             <span className='text-xs text-foreground/70'>
@@ -350,7 +354,7 @@ const CarCard: React.FC<CarCardProps> = ({
 
                             {/* Color Picker - Modern */}
                             <div className='bg-content1/50 p-2 rounded-md'>
-                                <div className='flex items-center justify-between mb-2'>
+                                <div className='flex items-center justify-between'>
                                     <span className='text-xs font-medium text-foreground/80'>
                                         Visualization Color
                                     </span>
@@ -412,7 +416,7 @@ const CarCard: React.FC<CarCardProps> = ({
                                             onPress={() =>
                                                 setIsColorPickerVisible(false)
                                             }
-                                            className='px-3 min-w-12 h-8 bg-primary/10 hover:bg-primary/20'
+                                            className='px-3 min-w-12 h-8 bg-primary/10 hover:bg-primary/20 text-primary'
                                         >
                                             <span className='text-xs'>
                                                 Done
