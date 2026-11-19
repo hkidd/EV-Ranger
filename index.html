@@ -1,10 +1,47 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="/EV_Ranger_Tree_Logo.webp" />
+    <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/svg+xml" sizes="any" href="/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="theme-color" content="#14231c" />
+    <style>
+      html {
+        background: #14231c;
+        color-scheme: dark;
+      }
+      html:not(.dark) {
+        background: #eef2ef;
+        color-scheme: light;
+      }
+    </style>
+    <script>
+      // Resolve the saved preference before CSS/React paint the workspace.
+      ;(() => {
+        let theme = 'dark'
+        try {
+          const saved = localStorage.getItem('theme')
+          if (saved === 'light' || saved === 'dark' || saved === 'system')
+            theme = saved
+        } catch {}
+        const dark =
+          theme === 'dark' ||
+          (theme === 'system' &&
+            matchMedia('(prefers-color-scheme: dark)').matches)
+        document.documentElement.classList.toggle('dark', dark)
+        document
+          .querySelector('meta[name="theme-color"]')
+          .setAttribute('content', dark ? '#14231c' : '#eef2ef')
+      })()
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>EV Ranger</title>
+    <meta
+      name="description"
+      content="Compare electric vehicles against your commute, regular destinations, and everyday life. Explore road distances and shared range scenarios with EV Ranger."
+    />
+    <title>EV Ranger — Know how far you’ll go</title>
   </head>
   <body>
     <div id="root"></div>

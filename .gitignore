@@ -25,3 +25,27 @@ dist-ssr
 
 # Firebase
 serviceAccountKey.json
+
+# Local environment files; share only the template.
+.env
+.env.*
+!.env.example
+
+# Local development tools and review material
+.agents/
+.codex/
+.impeccable/
+.claude/
+.cursor/
+.aider*
+/AGENTS.md
+/CLAUDE.md
+/DESIGN.md
+/PRODUCT.md
+/.github/copilot-instructions.md
+/docs/snapshots/
+/docs/release-*-20??-??-??.md
+/docs/*-verification-20??-??-??.md
+/docs/2026-refresh.md
+/docs/design-direction.md
+/docs/range-map-roadmap.md

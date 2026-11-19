@@ -1,276 +1,142 @@
-import React from 'react'
-import ColorTreeLogo from '../../assets/Logos/ColorTreeLogoNoBkg.webp'
-import ExampleImageLight from '../../assets/Examples/EVRangerEx725Light.png'
-import ExampleImageDark from '../../assets/Examples/EVRangerEx725Dark.png'
-import {
-    HiOutlineMap,
-    HiOutlineCalculator,
-    HiOutlineGlobeAlt,
-    HiOutlineShieldCheck,
-    HiOutlineLightningBolt,
-    HiOutlineCog
-} from 'react-icons/hi'
-import { Card, CardBody, Chip } from '@nextui-org/react'
-import { useTheme } from '../../context/ThemeContext'
+import { Link } from 'react-router-dom'
+import RangerHeader from '../Buyer/RangerHeader'
+import RangerFooter from '../Buyer/RangerFooter'
+import RangeExample from './RangeExample'
+import '../Buyer/buyer.css'
 
-const About: React.FC = () => {
-    const { isDarkMode } = useTheme()
-    
-    const coreFeatures = [
-        {
-            title: 'Interactive Range Visualization',
-            description:
-                'Clean, intuitive mapping interface that helps you understand exactly how far your EV can travel from any starting point.',
-            icon: <HiOutlineMap className='w-6 h-6' />
-        },
-        {
-            title: 'Comprehensive EV Database',
-            description:
-                'Carefully curated information about popular electric vehicles, including real-world range data and charging specifications.',
-            icon: <HiOutlineGlobeAlt className='w-6 h-6' />
-        },
-        {
-            title: 'Modern Web Architecture',
-            description:
-                'Built with React, TypeScript, and modern development practices to ensure a fast, reliable, and maintainable application.',
-            icon: <HiOutlineShieldCheck className='w-6 h-6' />
-        },
-        {
-            title: 'Smart Range Calculations',
-            description:
-                'Thoughtfully designed algorithms that consider key factors affecting EV range to provide useful estimates for trip planning.',
-            icon: <HiOutlineCalculator className='w-6 h-6' />
-        }
-    ]
-
-    const techSpecs = [
-        { label: 'EV Models', value: '50+' },
-        { label: 'Range Algorithm', value: 'Advanced' },
-        { label: 'Map Integration', value: 'Real-time' },
-        { label: 'User Experience', value: 'Intuitive' }
-    ]
-
-    return (
-        <div className='min-h-screen-minus-header bg-background dark:bg-background'>
-            {/* Product Showcase */}
-            <div className='py-20 bg-content1/30 dark:bg-content1/10'>
-                <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-                    <div className='text-center mb-16'>
-                        <div className='mb-8'>
-                            <Chip
-                                size='lg'
-                                variant='flat'
-                                className='bg-primary text-white font-medium border-0'
-                            >
-                                Smart EV Range Planning
-                            </Chip>
-                        </div>
-                        <h3 className='text-4xl md:text-5xl font-bold text-foreground mb-6'>
-                            Interactive Range
-                            <span className='block text-primary'>
-                                Visualization
-                            </span>
-                        </h3>
-                        <p className='text-xl text-foreground/60 max-w-3xl mx-auto leading-relaxed'>
-                            Select any electric vehicle and instantly see its
-                            range coverage on an interactive map. Perfect for
-                            trip planning and understanding EV capabilities.
-                        </p>
-                    </div>
-
-                    <div className='relative'>
-                        {/* Background decoration */}
-                        <div className='absolute inset-0 bg-gradient-to-br from-primary/5 to-primary/10 rounded-3xl blur-3xl'></div>
-
-                        {/* Main image container */}
-                        <div className='relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-4 md:p-8 border border-divider/20'>
-                            <img
-                                src={isDarkMode ? ExampleImageDark : ExampleImageLight}
-                                alt='EV Ranger Interface - Interactive range visualization showing electric vehicle range overlay on map'
-                                className='w-full h-auto rounded-xl shadow-lg'
-                            />
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Performance Metrics - Cleaner */}
-            <div className='py-12'>
-                <div className='max-w-6xl mx-auto px-4 sm:px-6 lg:px-8'>
-                    <div className='grid grid-cols-2 md:grid-cols-4 gap-8'>
-                        {techSpecs.map((spec, index) => (
-                            <div key={index} className='text-center'>
-                                <div className='text-3xl font-bold text-primary mb-2'>
-                                    {spec.value}
-                                </div>
-                                <div className='text-sm font-medium text-foreground/50 uppercase tracking-wider'>
-                                    {spec.label}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            {/* Core Features - Minimalist Cards */}
-            <div className='py-16'>
-                <div className='max-w-6xl mx-auto px-4 sm:px-6 lg:px-8'>
-                    <div className='text-center mb-20'>
-                        <h2 className='text-sm font-semibold text-primary uppercase tracking-wider mb-4'>
-                            Core Features
-                        </h2>
-                        <h3 className='text-4xl md:text-5xl font-bold text-foreground mb-6'>
-                            Built with Care,
-                            <span className='block text-primary'>
-                                Designed for You
-                            </span>
-                        </h3>
-                        <p className='text-xl text-foreground/60 max-w-3xl mx-auto leading-relaxed'>
-                            Every feature is carefully crafted to provide a
-                            smooth, reliable experience that helps you make
-                            confident decisions about electric vehicles.
-                        </p>
-                    </div>
-
-                    <div className='grid md:grid-cols-2 gap-8'>
-                        {coreFeatures.map((feature, index) => (
-                            <Card
-                                key={index}
-                                className='group hover:shadow-lg transition-all duration-300 bg-content1/50 dark:bg-content1/20 border-0'
-                            >
-                                <CardBody className='p-8'>
-                                    <div className='flex items-center mb-6'>
-                                        <div className='p-3 rounded-xl bg-primary text-white mr-4 group-hover:bg-primary/90 transition-colors'>
-                                            {feature.icon}
-                                        </div>
-                                        <h4 className='text-xl font-semibold text-foreground'>
-                                            {feature.title}
-                                        </h4>
-                                    </div>
-                                    <p className='text-foreground/70 leading-relaxed'>
-                                        {feature.description}
-                                    </p>
-                                </CardBody>
-                            </Card>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            {/* Values Section - Simplified */}
-            <div className='py-16 bg-content1/30 dark:bg-content1/10'>
-                <div className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8'>
-                    <div className='text-center mb-16'>
-                        <h2 className='text-sm font-semibold text-primary uppercase tracking-wider mb-4'>
-                            Our Approach
-                        </h2>
-                        <h3 className='text-4xl md:text-5xl font-bold text-foreground mb-8'>
-                            Accelerating the Future of
-                            <span className='block text-primary'>
-                                Sustainable Mobility
-                            </span>
-                        </h3>
-                    </div>
-
-                    <div className='grid md:grid-cols-2 gap-12'>
-                        <div className='text-center'>
-                            <div className='p-4 rounded-full bg-primary inline-flex mb-6'>
-                                <HiOutlineLightningBolt className='w-8 h-8 text-white' />
-                            </div>
-                            <h4 className='text-xl font-semibold text-foreground mb-4'>
-                                User-Focused Design
-                            </h4>
-                            <p className='text-foreground/70 leading-relaxed'>
-                                Every feature is designed with the end user in
-                                mind, prioritizing clarity, ease of use, and
-                                practical value for EV owners.
-                            </p>
-                        </div>
-
-                        <div className='text-center'>
-                            <div className='p-4 rounded-full bg-primary inline-flex mb-6'>
-                                <HiOutlineShieldCheck className='w-8 h-8 text-white' />
-                            </div>
-                            <h4 className='text-xl font-semibold text-foreground mb-4'>
-                                Accurate & Reliable
-                            </h4>
-                            <p className='text-foreground/70 leading-relaxed'>
-                                We strive for accuracy in our range calculations
-                                and data presentation, using established
-                                methodologies and reliable sources.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Technology Section - Clean */}
-            <div className='py-16'>
-                <div className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center'>
-                    <div className='mb-16'>
-                        <div className='p-6 rounded-full bg-primary inline-flex mb-8'>
-                            <HiOutlineCog className='w-12 h-12 text-white' />
-                        </div>
-                        <h3 className='text-3xl font-bold text-foreground mb-6'>
-                            Quality Development
-                        </h3>
-                        <p className='text-lg text-foreground/70 leading-relaxed mb-8 max-w-2xl mx-auto'>
-                            EV Ranger is built with modern development
-                            practices, clean code principles, and a focus on
-                            user experience to deliver a reliable and enjoyable
-                            application.
-                        </p>
-                        <div className='flex justify-center space-x-4'>
-                            <Chip
-                                size='md'
-                                variant='flat'
-                                className='bg-primary text-white border-0'
-                            >
-                                React
-                            </Chip>
-                            <Chip
-                                size='md'
-                                variant='flat'
-                                className='bg-primary/20 text-primary border-0'
-                            >
-                                TypeScript
-                            </Chip>
-                            <Chip
-                                size='md'
-                                variant='flat'
-                                className='bg-primary text-white border-0'
-                            >
-                                Modern UI
-                            </Chip>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Brand Section - Minimal */}
-            <div className='py-16 bg-content1/30 dark:bg-content1/10'>
-                <div className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8'>
-                    <div className='text-center'>
-                        <div className='w-48 h-48 mx-auto mb-8'>
-                            <img
-                                className='object-contain w-full h-full'
-                                src={ColorTreeLogo}
-                                alt='EV Ranger - Powering the Future of Electric Mobility'
-                            />
-                        </div>
-                        <h3 className='text-2xl font-bold text-foreground mb-4'>
-                            EV Ranger
-                        </h3>
-                        <p className='text-lg text-foreground/70 max-w-2xl mx-auto leading-relaxed'>
-                            Where thoughtful design meets sustainable
-                            transportation. Empowering electric vehicle adoption
-                            through clear, reliable tools and information.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    )
+export default function About() {
+  return (
+    <main className="buyer-app">
+      <RangerHeader />
+      <article className="buyer-explainer">
+        <h1>How it works</h1>
+        <p className="buyer-explainer-lead">
+          Pick a few EVs and see how they compare on the same trip. Change the
+          charge, temperature or driving mix to see what makes a difference.
+        </p>
+        <Link className="buyer-text-link" to="/compare">
+          Compare cars
+        </Link>
+        <RangeExample />
+        <nav className="buyer-explainer-nav" aria-label="Page sections">
+          <a href="#read-the-map">The map</a>
+          <a href="#comparison-conditions">Conditions</a>
+          <a href="#terrain-estimates">Elevation</a>
+          <a href="#estimate-sources">Data sources</a>
+        </nav>
+        <section>
+          <h2>Pick your cars</h2>
+          <p>
+            You can compare three cars at a time. Each card groups the
+            configurations for a model and year. Pick the trim and wheels that
+            match the car you’re looking at.
+          </p>
+          <p>
+            The names come from EPA records, so they won’t always match a
+            dealer’s trim names. Older EVs are included where records are
+            available. Missing specifications stay marked as missing.
+          </p>
+        </section>
+        <section id="read-the-map">
+          <h2>See where you could go</h2>
+          <p>
+            Start in Explore to compare your cars’ approximate range areas.
+            Filter parks, attractions, museums and campsites, then pan or zoom
+            to discover places. Groups expand as you zoom closer; results are
+            drawn from the provider’s directory and are not exhaustive.
+          </p>
+          <p>
+            Each selected car has a color. In one-way mode, the shaded areas
+            show their estimated reach. The boundary uses a distance budget; it
+            does not include our elevation adjustment. Individual trip checks
+            can include elevation.
+          </p>
+          <p>
+            When you have narrowed down your cars, open Trips to compare a drive
+            you know. Choose There & back to check the actual return route too,
+            rather than cutting the one-way range in half.
+          </p>
+        </section>
+        <section id="comparison-conditions">
+          <h2>Change the conditions</h2>
+          <p>
+            Charge, reserve and temperature apply to all the cars. Reserve is
+            the charge you want left when you arrive. Choose city, highway or
+            combined EPA range as the starting reference. If city or highway
+            data is missing, we use combined range.
+          </p>
+          <p>
+            Route weather shows forecasts for the current hour at a few points
+            along the drive. You can apply the sampled average temperature or
+            set your own. Wind and rain are shown for context but don’t change
+            the estimate yet.
+          </p>
+          <p>
+            The temperature adjustment is a general model, not a measured result
+            for every car. City and highway references don’t classify each road
+            segment or predict your driving style.
+          </p>
+        </section>
+        <section id="terrain-estimates">
+          <h2>Account for hills</h2>
+          <p>
+            Climbing uses energy. Descending can recover some of it. Enter
+            usable battery capacity and vehicle weight, including passengers and
+            luggage, to try the experimental elevation estimate.
+          </p>
+          <p>
+            Elevation currently covers part of Colorado’s Front Range and nearby
+            mountains. It does not cover the whole state or country. If a route
+            leaves that coverage, we use the EPA and temperature estimate
+            without adding a made-up terrain adjustment.
+          </p>
+        </section>
+        <section>
+          <h2>What’s not included</h2>
+          <p>
+            Charging stops, battery aging, live traffic, closures and individual
+            driving habits aren’t modeled yet. Weather may also change before
+            you arrive. Use the results to compare cars and plan further, rather
+            than treating an arrival estimate as a guarantee.
+          </p>
+          <p>
+            Cars, saved trips and manual settings stay in this browser. Start
+            fresh clears them. Weather and search results are refreshed instead
+            of saved.
+          </p>
+        </section>
+        <section id="estimate-sources">
+          <h2>Data sources</h2>
+          <ul>
+            <li>
+              <a href="https://www.fueleconomy.gov/feg/epadata/vehicles.csv">
+                US EPA
+              </a>{' '}
+              — vehicle configurations and rated range.
+            </li>
+            <li>
+              <a href="https://www.mapbox.com/">Mapbox</a> — maps, location
+              search and road routes.
+            </li>
+            <li>
+              <a href="https://www.tomtom.com/">TomTom</a> — places and reach
+              boundaries.
+            </li>
+            <li>
+              <a href="https://www.usgs.gov/3d-elevation-program">USGS 3DEP</a>{' '}
+              — elevation.
+            </li>
+            <li>
+              <a href="https://www.weather.gov/">National Weather Service</a> —
+              hourly forecasts.
+            </li>
+          </ul>
+          <p>
+            You can also open each vehicle’s source record from the comparison.
+          </p>
+        </section>
+      </article>
+      <RangerFooter />
+    </main>
+  )
 }
-
-export default About
