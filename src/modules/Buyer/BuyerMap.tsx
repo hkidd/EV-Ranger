@@ -414,7 +414,7 @@ export default function BuyerMap({
     markersRef.current.forEach((marker) => marker.remove())
     markersRef.current = []
     const points = [
-      ...(origin ? [{ place: origin, text: 'H', home: true, id: '' }] : []),
+      ...(origin ? [{ place: origin, text: '', home: true, id: '' }] : []),
       ...trips.map((trip, i) => ({
         place: trip.place,
         text: String(i + 1),
@@ -422,8 +422,12 @@ export default function BuyerMap({
         id: trip.id
       }))
     ]
+    let originButton: HTMLButtonElement | undefined
+    let dismissOriginLabel = () => {}
     points.forEach((point) => {
-      const element = document.createElement(point.home ? 'div' : 'button')
+      const element = document.createElement('button')
+      element.type = 'button'
+      element.setAttribute('role', 'button')
       element.className = `buyer-map-marker${point.home ? ' home' : ''}`
       element.textContent = point.text
       element.setAttribute(
@@ -432,9 +436,35 @@ export default function BuyerMap({
           ? `Starting point: ${point.place.label}`
           : `Show trip to ${point.place.label}`
       )
-      if (!point.home) {
-        element.setAttribute('type', 'button')
-        element.setAttribute('role', 'button')
+      if (point.home) {
+        originButton = element
+        element.innerHTML =
+          '<svg viewBox="0 0 24 30" aria-hidden="true"><path d="M12 29S1 17 1 12a11 11 0 0 1 22 0c0 5-11 17-11 17Z"/><circle cx="12" cy="12" r="4"/></svg>'
+        const label = document.createElement('span')
+        label.className = 'buyer-map-origin-label'
+        label.id = `buyer-origin-label-${crypto.randomUUID()}`
+        label.role = 'tooltip'
+        label.textContent = 'Starting point'
+        label.hidden = true
+        element.append(label)
+        element.setAttribute('aria-describedby', label.id)
+        const showLabel = () => {
+          label.hidden = false
+        }
+        dismissOriginLabel = () => {
+          label.hidden = true
+        }
+        element.addEventListener('mouseenter', showLabel)
+        element.addEventListener('mouseleave', () => {
+          if (document.activeElement !== element) dismissOriginLabel()
+        })
+        element.addEventListener('focus', showLabel)
+        element.addEventListener('blur', dismissOriginLabel)
+        element.addEventListener('click', (event) => {
+          event.stopPropagation()
+          showLabel()
+        })
+      } else {
         element.setAttribute(
           'aria-pressed',
           String(activeTrip?.id === point.id)
@@ -442,11 +472,27 @@ export default function BuyerMap({
         element.addEventListener('click', () => onSelectTrip(point.id))
       }
       markersRef.current.push(
-        new mapboxgl.Marker({ element })
+        new mapboxgl.Marker({
+          element,
+          anchor: point.home ? 'bottom' : 'center'
+        })
           .setLngLat(point.place.coordinates)
           .addTo(mapRef.current!)
       )
     })
+    const dismissOnOutsidePress = (event: PointerEvent) => {
+      if (event.target instanceof Node && !originButton?.contains(event.target))
+        dismissOriginLabel()
+    }
+    const dismissOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') dismissOriginLabel()
+    }
+    document.addEventListener('pointerdown', dismissOnOutsidePress)
+    document.addEventListener('keydown', dismissOnEscape)
+    return () => {
+      document.removeEventListener('pointerdown', dismissOnOutsidePress)
+      document.removeEventListener('keydown', dismissOnEscape)
+    }
   }, [origin, trips, activeTrip?.id, onSelectTrip, ready])
   const tripFrame = tripCameraFrame(origin, trips, activeTrip)
   useEffect(() => {

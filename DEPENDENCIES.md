@@ -1,7 +1,8 @@
 # Dependencies
 
-Both EV Ranger repositories target Node 22.13+ within Node 22 and use committed
-npm lockfiles. Install with `npm ci` to reproduce the tested package tree.
+Both EV Ranger repositories target Node 26.13.1+ within Node 26 and use committed
+npm lockfiles. Use `nvm use` to select the version in `.nvmrc`, then `npm ci` to
+reproduce the tested package tree. Local upgrade validation uses npm 12.2.3.
 
 ## Runtime
 
@@ -15,13 +16,17 @@ synthetic raster tests; deployed portable terrain grids do not require it.
 
 ## Version constraints
 
-- TypeScript uses `~6.0.3` in both repositories. Keep it compatible with the lint
-  tooling and the frontend tests that use the compiler API.
-- The API's Node types follow the Node 22 runtime.
+- TypeScript uses `~6.0.3` in both repositories. TypeScript 7 is excluded because
+  typescript-eslint currently requires TypeScript below 6.1; frontend tests also
+  use the compiler API.
+- The API's Node types follow the Node 26 runtime.
 - The minimatch override addresses a transitive lint-tool dependency. Revisit it
   when the parent dependency updates its requirement.
 - AWS S3 and Wrangler are development dependencies used by maintenance and
   publishing scripts, not browser code.
+- npm 12 requires explicit dependency install-script approvals. `allowScripts`
+  lists the reviewed native-tool versions; review and update those entries when
+  upgrading esbuild, workerd or fsevents.
 
 ## Updating packages
 

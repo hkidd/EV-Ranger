@@ -16,10 +16,11 @@ routing, weather and elevation requests go through the separate
 
 ## Local development
 
-Use Node **22.13.0 or newer within Node 22**, and npm. Start the
+Use Node **26.13.1 or newer within Node 26**, and npm. Start the
 [API](https://github.com/hkidd/ev-ranger-api#readme) on port 3001, then run:
 
 ```sh
+nvm use
 npm ci
 cp .env.example .env.development.local
 ```
@@ -33,7 +34,9 @@ npm run dev
 
 Open `http://127.0.0.1:5174/compare`. Vite proxies `/api` requests to
 `http://127.0.0.1:3001`. Restart the development server after changing environment
-variables.
+variables. The committed `.nvmrc` selects the tested Node version; `nvm use`
+requires [nvm](https://github.com/nvm-sh/nvm), or install that Node version with
+your preferred version manager.
 
 ### Environment variables
 
@@ -111,7 +114,7 @@ fallback. Coverage is checked per route.
 ## Deployment
 
 Deploy and verify the matching API before the frontend. In the frontend Vercel
-project, use Node 22.x, build command `npm run build` and output directory `dist`.
+project, use Node 26.x, build command `npm run build` and output directory `dist`.
 Set these public build variables:
 
 ```dotenv

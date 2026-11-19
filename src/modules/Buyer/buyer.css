@@ -771,7 +771,41 @@
   color: #203e30;
 }
 .buyer-map-marker.home {
-  background: #203e30;
+  width: 36px;
+  height: 44px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+}
+.buyer-map-marker.home svg {
+  width: 32px;
+  height: 40px;
+  overflow: visible;
+  filter: drop-shadow(0 3px 4px #102f2440);
+}
+.buyer-map-marker.home path {
+  fill: #203e30;
+  stroke: #fafcf9;
+  stroke-width: 1.5;
+}
+.buyer-map-marker.home circle {
+  fill: #d6ed82;
+}
+.buyer-map-origin-label {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 7px 10px;
+  border: 1px solid var(--buyer-line);
+  border-radius: 7px;
+  background: var(--buyer-panel);
+  color: var(--buyer-ink);
+  box-shadow: var(--buyer-shadow);
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
 }
 .buyer-map-marker:focus-visible {
   outline: 2px solid #203e30;
